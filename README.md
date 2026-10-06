@@ -36,3 +36,61 @@ kir_pyguard: removed 8 module-provided search-path entries so that packages are 
 | `kir_pyguard.py` | Start-up guard installed into the venv's `site-packages` with a `.pth` file. Runs every time the venv's interpreter starts and removes module-provided entries from `sys.path`. |
 | `lmod/SitePackage-venv-hook.lua` | Optional Lmod hook that warns when a Python-related module is loaded while a virtual environment is active. Requires site administrator access. |
 
+
+
+## Installation
+
+Clone the repository and source the wrapper from a shell start-up file or a module:
+
+```bash
+git clone https://github.com/kir-rescomp/uv-guard.git
+source uv-guard/kir-uv-activate.sh
+```
+
+`kir_pyguard.py` must remain in the same directory as `kir-uv-activate.sh`, because the wrapper locates it relative to its own path.
+
+On the BMRC cluster, uv-guard is provided through the KIR-utils module:
+
+```bash
+module load KIR-utils
+```
+
+## Usage
+
+### Interactive sessions
+
+Use `uvactivate` in place of `source .venv/bin/activate`:
+
+```console
+$ module load R/4.5.1-gfbf-2023a-bare-noSciPy
+$ uvactivate .venv
+uvactivate: removed 8 module-provided PYTHONPATH entries
+uvactivate: installed start-up guard in /path/to/.venv/lib/python3.14/site-packages
+uvactivate: OK: /path/to/.venv/bin/python 3.14.3
+```
+
+`uvactivate` takes the path to the environment as its argument and defaults to `.venv` in the current directory. It returns a non-zero exit status if verification fails.
+
+To deactivate the environment and restore the variables that were changed:
+
+```bash
+uvdeactivate
+```
+
+Load all required modules **before** running `uvactivate`. Modules loaded afterwards can place another interpreter ahead of the venv on `PATH` (see [Limitations](#limitations)).
+
+### Slurm jobs
+
+```bash
+#!/bin/bash
+#SBATCH --job-name=example
+#SBATCH --time=01:00:00
+
+module load KIR-utils
+module load R/4.5.1-gfbf-2023a-bare-noSciPy
+uvactivate /full/path/to/.venv || exit 1
+
+python my_script.py
+```
+
+Use the full path to the environment, and place `uvactivate` after every `module load` line. The `|| exit 1` stops the job if the environment cannot be verified.
