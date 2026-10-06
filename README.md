@@ -27,3 +27,12 @@ kir_pyguard: removed 8 module-provided search-path entries so that packages are 
 /path/to/.venv/bin/python
 2.5.3
 ```
+
+## Components
+
+| File | Purpose |
+|------|---------|
+| `kir-uv-activate.sh` | Defines `uvactivate`, `uvdeactivate` and `uvguard-install`. Cleans module-provided Python search paths, activates the environment, installs the start-up guard and verifies the result. |
+| `kir_pyguard.py` | Start-up guard installed into the venv's `site-packages` with a `.pth` file. Runs every time the venv's interpreter starts and removes module-provided entries from `sys.path`. |
+| `lmod/SitePackage-venv-hook.lua` | Optional Lmod hook that warns when a Python-related module is loaded while a virtual environment is active. Requires site administrator access. |
+
